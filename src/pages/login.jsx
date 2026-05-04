@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "../firebase/config"
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { auth, googleProvider } from "../firebase/config"
 
 export default function Login() {
     const navigate = useNavigate()
@@ -22,6 +22,19 @@ export default function Login() {
             navigate("/chats")
         } catch (err) {
             setError("Invalid email or password")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleGoogle = async () => {
+        try {
+            setLoading(true)
+            setError("")
+            await signInWithPopup(auth, googleProvider)
+            navigate("/chats")
+        } catch (err) {
+            setError("Google sign in failed. Try again!")
         } finally {
             setLoading(false)
         }
@@ -75,7 +88,7 @@ export default function Login() {
                     </span>
                 </div>
 
-                {/* Submit */}
+                {/* Sign In Button */}
                 <button
                     onClick={handleLogin}
                     disabled={loading}
@@ -84,19 +97,29 @@ export default function Login() {
                     {loading ? "Signing in..." : "Sign In"}
                 </button>
 
+                {/* Divider */}
                 <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-muted"></div>
                     <span className="text-muted text-xs">or</span>
                     <div className="flex-1 h-px bg-muted"></div>
                 </div>
 
-                <button className="w-full border border-muted bg-primarylight text-primarydark font-medium py-3 rounded-full text-sm">
+                {/* Google Button */}
+                <button
+                    onClick={handleGoogle}
+                    disabled={loading}
+                    className="w-full border border-muted bg-primarylight text-primarydark font-medium py-3 rounded-full text-sm hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                    <span>🌐</span>
                     Continue with Google
                 </button>
 
                 <p className="text-center text-sm text-gray-400 pb-6">
                     New here?{" "}
-                    <span onClick={() => navigate("/signup")} className="text-primary font-semibold cursor-pointer">
+                    <span
+                        onClick={() => navigate("/signup")}
+                        className="text-primary font-semibold cursor-pointer"
+                    >
                         Create account
                     </span>
                 </p>

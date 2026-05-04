@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { auth } from "../firebase/config"
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth"
+import { auth, googleProvider } from "../firebase/config"
 
 export default function Signup() {
     const navigate = useNavigate()
@@ -11,6 +11,18 @@ export default function Signup() {
     const [role, setRole] = useState("teacher")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
+    const handleGoogle = async () => {
+        try {
+            setLoading(true)
+            setError("")
+            await signInWithPopup(auth, googleProvider)
+            navigate("/chats")
+        } catch (err) {
+            setError("Google sign in failed. Try again!")
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleSignup = async () => {
         if (!name || !email || !password) {
@@ -22,7 +34,7 @@ export default function Signup() {
             setError("")
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             await updateProfile(userCredential.user, { displayName: name })
-            navigate("/chats")
+            navigate("/login")
         } catch (err) {
             setError(err.message)
         } finally {
@@ -94,8 +106,8 @@ export default function Signup() {
                         <button
                             onClick={() => setRole("teacher")}
                             className={`flex-1 border-2 font-medium py-2 rounded-xl text-sm transition ${role === "teacher"
-                                    ? "border-primary bg-primarylight text-primarydark"
-                                    : "border-muted text-muted"
+                                ? "border-primary bg-primarylight text-primarydark"
+                                : "border-muted text-muted"
                                 }`}
                         >
                             👨‍🏫 Teacher
@@ -103,8 +115,8 @@ export default function Signup() {
                         <button
                             onClick={() => setRole("student")}
                             className={`flex-1 border-2 font-medium py-2 rounded-xl text-sm transition ${role === "student"
-                                    ? "border-primary bg-primarylight text-primarydark"
-                                    : "border-muted text-muted"
+                                ? "border-primary bg-primarylight text-primarydark"
+                                : "border-muted text-muted"
                                 }`}
                         >
                             👨‍🎓 Student
@@ -127,6 +139,21 @@ export default function Signup() {
                         Sign in
                     </span>
                 </p>
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-muted"></div>
+                    <span className="text-muted text-xs">or</span>
+                    <div className="flex-1 h-px bg-muted"></div>
+                </div>
+
+                {/* Google Button */}
+                <button
+                    onClick={handleGoogle}
+                    disabled={loading}
+                    className="w-full border border-muted bg-primarylight text-primarydark font-medium py-3 rounded-full text-sm hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                    <span>Continue with Google</span>
+                </button>
 
             </div>
         </div>
