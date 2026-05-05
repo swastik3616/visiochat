@@ -8,26 +8,15 @@ export default function Signup() {
     const navigate = useNavigate()
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
+    const [phone, setPhone] = useState("")
     const [password, setPassword] = useState("")
     const [role, setRole] = useState("teacher")
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const handleGoogle = async () => {
-        try {
-            setLoading(true)
-            setError("")
-            await signInWithPopup(auth, googleProvider)
-            navigate("/chats")
-        } catch (err) {
-            setError("Google sign in failed. Try again!")
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const handleSignup = async () => {
-        if (!name || !email || !password) {
-            setError("Please fill all fields")
+        if (!name || !email || !password || !phone) {
+            setError("Please fill all fields including phone number")
             return
         }
         try {
@@ -35,9 +24,29 @@ export default function Signup() {
             setError("")
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             await updateProfile(userCredential.user, { displayName: name })
+
+            // Save to Firestore
+            await saveUser(userCredential.user, role, phone)
+
+            console.log("User saved to Firestore!")
             navigate("/login")
         } catch (err) {
             setError(err.message)
+            console.log("Signup error:", err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleGoogle = async () => {
+        try {
+            setLoading(true)
+            setError("")
+            const result = await signInWithPopup(auth, googleProvider)
+            await saveUser(result.user, "student", phone)
+            navigate("/chats")
+        } catch (err) {
+            setError("Google sign in failed. Try again!")
         } finally {
             setLoading(false)
         }
@@ -76,6 +85,20 @@ export default function Signup() {
                     />
                 </div>
 
+                {/* Phone */}
+                <div className="flex flex-col gap-1">
+                    <label className="text-primarydark text-sm font-medium">
+                        Phone number
+                    </label>
+                    <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="9876543210"
+                        className="border border-muted rounded-xl px-4 py-3 text-sm text-primarydark bg-primarylight outline-none focus:border-primary"
+                    />
+                </div>
+
                 {/* Email */}
                 <div className="flex flex-col gap-1">
                     <label className="text-primarydark text-sm font-medium">Email address</label>
@@ -107,8 +130,8 @@ export default function Signup() {
                         <button
                             onClick={() => setRole("teacher")}
                             className={`flex-1 border-2 font-medium py-2 rounded-xl text-sm transition ${role === "teacher"
-                                ? "border-primary bg-primarylight text-primarydark"
-                                : "border-muted text-muted"
+                                    ? "border-primary bg-primarylight text-primarydark"
+                                    : "border-muted text-muted"
                                 }`}
                         >
                             👨‍🏫 Teacher
@@ -116,8 +139,8 @@ export default function Signup() {
                         <button
                             onClick={() => setRole("student")}
                             className={`flex-1 border-2 font-medium py-2 rounded-xl text-sm transition ${role === "student"
-                                ? "border-primary bg-primarylight text-primarydark"
-                                : "border-muted text-muted"
+                                    ? "border-primary bg-primarylight text-primarydark"
+                                    : "border-muted text-muted"
                                 }`}
                         >
                             👨‍🎓 Student
@@ -134,12 +157,6 @@ export default function Signup() {
                     {loading ? "Creating account..." : "Create Account"}
                 </button>
 
-                <p className="text-center text-sm text-gray-400 pb-6">
-                    Already have an account?{" "}
-                    <span onClick={() => navigate("/login")} className="text-primary font-semibold cursor-pointer">
-                        Sign in
-                    </span>
-                </p>
                 {/* Divider */}
                 <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-muted"></div>
@@ -147,14 +164,22 @@ export default function Signup() {
                     <div className="flex-1 h-px bg-muted"></div>
                 </div>
 
-                {/* Google Button */}
+                {/* Google */}
                 <button
                     onClick={handleGoogle}
                     disabled={loading}
-                    className="w-full border border-muted bg-primarylight text-primarydark font-medium py-3 rounded-full text-sm hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="w-full border border-muted bg-primarylight text-primarydark font-medium py-3 rounded-full text-sm disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                    <span>Continue with Google</span>
+                    <span>🌐</span>
+                    Continue with Google
                 </button>
+
+                <p className="text-center text-sm text-gray-400 pb-6">
+                    Already have an account?{" "}
+                    <span onClick={() => navigate("/login")} className="text-primary font-semibold cursor-pointer">
+                        Sign in
+                    </span>
+                </p>
 
             </div>
         </div>
