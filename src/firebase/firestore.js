@@ -8,9 +8,8 @@ import {
     onSnapshot,
     query,
     orderBy,
+    where,
     serverTimestamp,
-    updateDoc,
-    arrayUnion,
 } from "firebase/firestore"
 
 // Save user to Firestore after signup
@@ -22,6 +21,14 @@ export const saveUser = async (user, role, phone) => {
         role: role || "student",
         createdAt: serverTimestamp(),
     })
+}
+
+// Find user by phone number
+export const findUserByPhone = async (phone) => {
+    const q = query(collection(db, "users"), where("phone", "==", phone))
+    const snapshot = await getDocs(q)
+    if (snapshot.empty) return null
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() }
 }
 
 // Get all users

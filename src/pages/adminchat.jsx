@@ -1,63 +1,40 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect, useRef } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { auth } from "../firebase/config"
+import { sendMessage, listenMessages } from "../firebase/firestore"
 
-const initialMessages = [
-    {
-        id: 1,
-        text: "Exam starts at 10AM sharp. All the best!",
-        sender: "admin",
-        type: "announce",
-        time: "9:00 AM",
-    },
-    {
-        id: 2,
-        text: "Thank you sir!",
-        sender: "me",
-        type: "normal",
-        time: "9:02 AM",
-    },
-    {
-        id: 3,
-        text: "Ready!",
-        sender: "member",
-        senderName: "Priya",
-        type: "normal",
-        time: "9:03 AM",
-    },
-    {
-        id: 4,
-        text: "This message is not visible to you",
-        sender: "admin",
-        type: "hidden",
-        time: "10:01 AM",
-    },
-    {
-        id: 5,
-        text: "Good luck everyone!",
-        sender: "admin",
-        type: "normal",
-        time: "10:02 AM",
-    },
-]
-
-export default function MemberChat() {
+export default function AdminChat() {
     const navigate = useNavigate()
-    const [messages, setMessages] = useState(initialMessages)
+    const { groupId } = useParams()
+    const [messages, setMessages] = useState([])
     const [input, setInput] = useState("")
+    const [visibility, setVisibility] = useState("everyone")
+    const [isAnnounce, setIsAnnounce] = useState(false)
+    const [isTimed, setIsTimed] = useState(false)
+    const bottomRef = useRef(null)
+    const user = auth.currentUser
 
-    const sendMessage = () => {
+    useEffect(() => {
+        const unsubscribe = listenMessages(groupId, (msgs) => {
+            setMessages(msgs)
+        })
+        return () => unsubscribe()
+    }, [groupId])
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [messages])
+
+    const handleSend = async () => {
         if (!input.trim()) return
-        const newMsg = {
-            id: messages.length + 1,
+        await sendMessage(groupId, {
             text: input,
-            sender: "me",
-            type: "normal",
-            time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-            }),
-        }
-        setMessages([...messages, newMsg])
+            senderId: user.uid,
+            senderName: user.displayName,
+            type: isAnnounce ? "announce" : "normal",
+            visibility: visibility,
+            timed: isTimed,
+        })
         setInput("")
     }
 
@@ -66,15 +43,13 @@ export default function MemberChat() {
 
             {/* Top Bar */}
             <div className="bg-primary px-4 pt-10 pb-3 flex items-center gap-3">
-                <button onClick={() => navigate("/chats")} className="text-white text-lg">
-                    ←
-                </button>
+                <button onClick={() => navigate("/chats")} className="text-white text-lg">←</button>
                 <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-white text-xs font-semibold">
                     CG
                 </div>
                 <div className="flex-1">
                     <div className="text-white text-sm font-semibold">Class Group</div>
-                    <div className="text-muted text-xs">12 members · Member view</div>
+                    <div className="text-muted text-xs">Admin view</div>
                 </div>
             </div>
 
@@ -86,57 +61,39 @@ export default function MemberChat() {
                         {/* Announcement */}
                         {msg.type === "announce" && (
                             <div className="bg-primarydark bg-opacity-10 border-l-4 border-primarydark rounded-xl px-4 py-3">
-                                <div className="text-xs text-primarydark font-semibold mb-1">
-                                    📢 Announcement
-                                </div>
+                                <div className="text-xs text-primarydark font-semibold mb-1">📢 Announcement</div>
                                 <div className="text-primarydark text-sm">{msg.text}</div>
-                                <div className="text-muted text-xs mt-1">{msg.time}</div>
-                            </div>
-                        )}
-
-                        {/* Hidden Message */}
-                        {msg.type === "hidden" && (
-                            <div className="flex flex-col items-start">
-                                <div className="border border-dashed border-muted bg-white rounded-2xl px-4 py-2 max-w-xs">
-                                    <div className="text-muted text-sm italic">
-                                        🔒 This message is not visible to you
-                                    </div>
-                                    <div className="text-muted text-xs mt-1">{msg.time}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Other Member Message */}
-                        {msg.sender === "member" && msg.type === "normal" && (
-                            <div className="flex flex-col items-start">
-                                <div className="text-xs text-gray-400 mb-1 ml-1">
-                                    {msg.senderName}
-                                </div>
-                                <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-2 max-w-xs shadow-sm">
-                                    <div className="text-primarydark text-sm">{msg.text}</div>
-                                    <div className="text-muted text-xs mt-1">{msg.time}</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Admin Message */}
-                        {msg.sender === "admin" && msg.type === "normal" && (
-                            <div className="flex flex-col items-start">
-                                <div className="text-xs text-gray-400 mb-1 ml-1">Admin</div>
-                                <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-2 max-w-xs shadow-sm">
-                                    <div className="text-primarydark text-sm">{msg.text}</div>
-                                    <div className="text-muted text-xs mt-1">{msg.time}</div>
+                                <div className="text-muted text-xs mt-1">
+                                    {msg.createdAt?.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                 </div>
                             </div>
                         )}
 
                         {/* My Message */}
-                        {msg.sender === "me" && (
+                        {msg.senderId === user.uid && msg.type !== "announce" && (
                             <div className="flex flex-col items-end">
                                 <div className="bg-primary rounded-2xl rounded-tr-sm px-4 py-2 max-w-xs shadow-sm">
                                     <div className="text-white text-sm">{msg.text}</div>
-                                    <div className="text-primarylight text-xs mt-1 opacity-70">
-                                        {msg.time}
+                                    <div className="flex items-center justify-between gap-3 mt-1">
+                                        <span className="text-primarylight text-xs opacity-70">
+                                            {msg.createdAt?.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                        </span>
+                                        <span className="text-primarylight text-xs opacity-70">
+                                            {msg.timed ? "⏰ Timed" : msg.visibility === "selected" ? "🔒 Selected" : "👁️ Everyone"}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Other Member Message */}
+                        {msg.senderId !== user.uid && msg.type !== "announce" && (
+                            <div className="flex flex-col items-start">
+                                <div className="text-xs text-gray-400 mb-1 ml-1">{msg.senderName}</div>
+                                <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-2 max-w-xs shadow-sm">
+                                    <div className="text-primarydark text-sm">{msg.text}</div>
+                                    <div className="text-muted text-xs mt-1">
+                                        {msg.createdAt?.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     </div>
                                 </div>
                             </div>
@@ -144,22 +101,51 @@ export default function MemberChat() {
 
                     </div>
                 ))}
+                <div ref={bottomRef} />
             </div>
 
-            {/* Message Input */}
+            {/* Admin Controls */}
+            <div className="bg-white border-t border-primarylight px-4 py-2">
+                <div className="text-xs text-primarydark font-semibold mb-2">Admin Controls</div>
+                <div className="flex gap-2 flex-wrap">
+                    <select
+                        value={visibility}
+                        onChange={(e) => setVisibility(e.target.value)}
+                        className="text-xs border border-muted rounded-full px-3 py-1 text-primarydark bg-primarylight outline-none"
+                    >
+                        <option value="everyone">👁️ Everyone</option>
+                        <option value="selected">🔒 Selected only</option>
+                    </select>
+                    <button
+                        onClick={() => setIsAnnounce(!isAnnounce)}
+                        className={`text-xs px-3 py-1 rounded-full border transition ${isAnnounce ? "bg-primarydark text-white border-primarydark" : "bg-primarylight text-primarydark border-muted"
+                            }`}
+                    >
+                        📢 Announce
+                    </button>
+                    <button
+                        onClick={() => setIsTimed(!isTimed)}
+                        className={`text-xs px-3 py-1 rounded-full border transition ${isTimed ? "bg-primarydark text-white border-primarydark" : "bg-primarylight text-primarydark border-muted"
+                            }`}
+                    >
+                        ⏰ Timed
+                    </button>
+                </div>
+            </div>
+
+            {/* Input */}
             <div className="bg-white px-3 py-3 flex items-center gap-2">
-                <button className="text-muted text-xl">📎</button>
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder="Type a reply..."
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    placeholder="Type a message..."
                     className="flex-1 bg-primarylight rounded-full px-4 py-2 text-sm text-primarydark outline-none"
                 />
                 <button
-                    onClick={sendMessage}
-                    className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-lg hover:opacity-90 transition"
+                    onClick={handleSend}
+                    className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-lg"
                 >
                     ➤
                 </button>
