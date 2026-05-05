@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Splash from "./pages/Splash"
 import Login from "./pages/login"
-import Signup from "./pages/Signup"
+import Signup from "./pages/signup"
 import Chats from "./pages/chats"
 import AdminChat from "./pages/adminchat"
 import MemberChat from "./pages/memberchat"
+import CreateGroup from "./pages/creategroup"
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/chats" element={<Chats />} />
         <Route path="/chat/admin/:groupId" element={<AdminChat />} />
         <Route path="/chat/member/:groupId" element={<MemberChat />} />
+        <Route path="/create-group" element={<CreateGroup />} />
       </Routes>
     </BrowserRouter>
   )

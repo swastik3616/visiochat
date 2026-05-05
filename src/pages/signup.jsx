@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "../firebase/config"
+import { saveUser } from "../firebase/firestore"
 
 export default function Signup() {
     const navigate = useNavigate()
