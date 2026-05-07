@@ -6,18 +6,53 @@ import Chats from "./pages/chats"
 import AdminChat from "./pages/adminchat"
 import MemberChat from "./pages/memberchat"
 import CreateGroup from "./pages/creategroup"
+import ProtectedRoute from "./components/protectedroute"
+import PublicRoute from "./components/PublicRoute"
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Splash />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/chats" element={<Chats />} />
-        <Route path="/chat/admin/:groupId" element={<AdminChat />} />
-        <Route path="/chat/member/:groupId" element={<MemberChat />} />
-        <Route path="/create-group" element={<CreateGroup />} />
+
+        {/* Public Routes - redirect to chats if logged in */}
+        <Route path="/" element={
+          <PublicRoute>
+            <Splash />
+          </PublicRoute>
+        } />
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
+        <Route path="/signup" element={
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        } />
+
+        {/* Protected Routes - redirect to login if not logged in */}
+        <Route path="/chats" element={
+          <ProtectedRoute>
+            <Chats />
+          </ProtectedRoute>
+        } />
+        <Route path="/chat/admin/:groupId" element={
+          <ProtectedRoute>
+            <AdminChat />
+          </ProtectedRoute>
+        } />
+        <Route path="/chat/member/:groupId" element={
+          <ProtectedRoute>
+            <MemberChat />
+          </ProtectedRoute>
+        } />
+        <Route path="/create-group" element={
+          <ProtectedRoute>
+            <CreateGroup />
+          </ProtectedRoute>
+        } />
+
       </Routes>
     </BrowserRouter>
   )
