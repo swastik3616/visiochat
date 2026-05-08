@@ -2,16 +2,14 @@ import { initializeApp } from "firebase/app"
 import { getAuth, GoogleAuthProvider } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyDVUV-mH7Z5XCFV5nZnh_sPzZgMDQJzvM8",
-    authDomain: "visiochat-aecfd.firebaseapp.com",
-    projectId: "visiochat-aecfd",
-    storageBucket: "visiochat-aecfd.firebasestorage.app",
-    messagingSenderId: "75252536700",
-    appId: "1:75252536700:web:50fcc8246b6c261e8900f9",
-    measurementId: "G-XFF26721NG"
-};
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+}
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
