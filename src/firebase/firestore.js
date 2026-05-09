@@ -5,11 +5,14 @@ import {
     getDocs,
     doc,
     setDoc,
+    getDoc,
     onSnapshot,
     query,
     orderBy,
     where,
     serverTimestamp,
+    updateDoc,
+    arrayUnion,
 } from "firebase/firestore"
 
 // Save user to Firestore after signup
@@ -46,6 +49,24 @@ export const createGroup = async (groupName, adminId, memberIds) => {
         createdAt: serverTimestamp(),
     })
     return groupRef.id
+}
+
+// Get single group
+export const getGroup = async (groupId) => {
+    const docRef = doc(db, "groups", groupId)
+    const docSnap = await getDoc(docRef)
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() }
+    }
+    return null
+}
+
+// Join group by invite
+export const joinGroup = async (groupId, userId) => {
+    const groupRef = doc(db, "groups", groupId)
+    await updateDoc(groupRef, {
+        members: arrayUnion(userId),
+    })
 }
 
 // Get groups for a user

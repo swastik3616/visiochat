@@ -27,6 +27,14 @@ export default function Login() {
         }
     }
 
+    // If coming from JoinGroup, redirect after login
+    const pendingGroupId = localStorage.getItem("pendingGroupId")
+
+    if (pendingGroupId) {
+        navigate(`/join/${pendingGroupId}`, { replace: true })
+        localStorage.removeItem("pendingGroupId")
+    }
+
     const handleGoogle = async () => {
         try {
             setLoading(true)

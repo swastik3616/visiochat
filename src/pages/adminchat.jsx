@@ -38,6 +38,12 @@ export default function AdminChat() {
         setInput("")
     }
 
+    const copyInviteLink = () => {
+        const link = `${window.location.origin}/join/${groupId}`
+        navigator.clipboard.writeText(link)
+        alert("Invite link copied! Share it with members.")
+    }
+
     return (
         <div className="min-h-screen bg-primarylight flex flex-col">
 
