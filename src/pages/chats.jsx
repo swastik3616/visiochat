@@ -112,6 +112,19 @@ export default function Chats() {
                     <span className="text-xs text-gray-400">Settings</span>
                 </div>
             </div>
+            {/* Top Bar */}
+            <div className="bg-primary px-6 pt-10 pb-4 flex items-center justify-between">
+            <h1 className="text-white text-xl font-semibold">VisioChat</h1>
+            <div className="flex gap-3 items-center">
+                <button className="text-white text-lg">🔍</button>
+                <button
+                onClick={() => navigate("/profile")}
+                className="w-8 h-8 rounded-full bg-primarylight flex items-center justify-center text-primarydark text-sm font-semibold"
+                >
+                {auth.currentUser?.displayName?.charAt(0).toUpperCase()}
+                </button>
+            </div>
+            </div>
 
         </div>
     )
