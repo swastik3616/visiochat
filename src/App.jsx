@@ -9,6 +9,7 @@ import CreateGroup from "./pages/creategroup"
 import ProtectedRoute from "./components/protectedroute"
 import PublicRoute from "./components/publicroute"
 import JoinGroup from "./pages/JoinGroup"
+import Profile from "./pages/Profile"
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
         <Route path="/chat/member/:groupId" element={<ProtectedRoute><MemberChat /></ProtectedRoute>} />
         <Route path="/create-group" element={<ProtectedRoute><CreateGroup /></ProtectedRoute>} />
         <Route path="/join/:groupId" element={<JoinGroup />} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
       </Routes>
     </BrowserRouter>
   )
