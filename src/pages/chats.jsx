@@ -17,16 +17,22 @@ export default function Chats() {
             setLoading(false)
         }
         fetchGroups()
-    }, [])
+    }, [user]) // ✅ Fixed: added `user` as dependency
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
 
-            {/* Top Bar */}
+            {/* Top Bar — merged both duplicate bars into one */}
             <div className="bg-primary px-6 pt-10 pb-4 flex items-center justify-between">
                 <h1 className="text-white text-xl font-semibold">VisioChat</h1>
-                <div className="flex gap-4">
+                <div className="flex gap-3 items-center">
                     <button className="text-white text-lg">🔍</button>
+                    <button
+                        onClick={() => navigate("/profile")}
+                        className="w-8 h-8 rounded-full bg-primarylight flex items-center justify-center text-primarydark text-sm font-semibold"
+                    >
+                        {user?.displayName?.charAt(0).toUpperCase() ?? "?"}
+                    </button>
                     <button
                         onClick={() => { auth.signOut(); navigate("/login") }}
                         className="text-white text-sm border border-white px-3 py-1 rounded-full"
@@ -63,7 +69,7 @@ export default function Chats() {
                             key={group.id}
                             onClick={() =>
                                 navigate(
-                                    group.adminId === user.uid
+                                    group.adminId === user?.uid
                                         ? `/chat/admin/${group.id}`
                                         : `/chat/member/${group.id}`
                                 )
@@ -77,7 +83,7 @@ export default function Chats() {
                                 <div className="text-primarydark font-medium text-sm">{group.name}</div>
                                 <div className="text-gray-400 text-xs mt-1">
                                     {group.members.length} members ·{" "}
-                                    {group.adminId === user.uid ? "You are admin" : "Member"}
+                                    {group.adminId === user?.uid ? "You are admin" : "Member"}
                                 </div>
                             </div>
                         </div>
@@ -111,19 +117,6 @@ export default function Chats() {
                     <span className="text-xl">⚙️</span>
                     <span className="text-xs text-gray-400">Settings</span>
                 </div>
-            </div>
-            {/* Top Bar */}
-            <div className="bg-primary px-6 pt-10 pb-4 flex items-center justify-between">
-            <h1 className="text-white text-xl font-semibold">VisioChat</h1>
-            <div className="flex gap-3 items-center">
-                <button className="text-white text-lg">🔍</button>
-                <button
-                onClick={() => navigate("/profile")}
-                className="w-8 h-8 rounded-full bg-primarylight flex items-center justify-center text-primarydark text-sm font-semibold"
-                >
-                {auth.currentUser?.displayName?.charAt(0).toUpperCase()}
-                </button>
-            </div>
             </div>
 
         </div>
